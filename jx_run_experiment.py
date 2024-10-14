@@ -8,7 +8,7 @@ from riverswim import RiverSwim
 parser = argparse.ArgumentParser()
 parser.add_argument("--agentfile", type=str, help="file with Agent object", default="agent.py")
 parser.add_argument("--agenttype", type=str, help="Agent type", default="Q")
-parser.add_argument("--strategy", type=str, help="Strategy", default="random")
+parser.add_argument("--strategy", type=str, help="Strategy", default="zeros")
 parser.add_argument("--env", type=str, help="Environment", default="FrozenLake-v1")
 args = parser.parse_args()
 
@@ -62,8 +62,15 @@ num_episodes = 10000
 num_runs = 5
 all_rewards = []
 
+plt.ion()
+fig, ax = plt.subplots()
+heatmap = ax.imshow(agent.Q, interpolation='nearest', cmap='hot')
+plt.colorbar(heatmap)
+
+
 for run in range(num_runs):
     rewards = []
+    agent = agentfile.Agent(args.agenttype, state_dim, action_dim, args.strategy)
     for episode in range(num_episodes):
         state = env.reset()
         if isinstance(state, tuple):
@@ -73,7 +80,12 @@ for run in range(num_runs):
         total_reward = 0
         done = False
         while not done:
+            if episode % 1000 == 0:
+                heatmap.set_data(agent.Q)
+                plt.draw()
+                plt.pause(1e-10)
             action = agent.act(state)
+            # 
             # print(action)
             next_state, reward, done, truncate ,_= env.step(action)
             agent.observe(next_state, reward, done)
@@ -107,3 +119,4 @@ def plot_results(env_name, all_rewards):
     plt.show()
 
 plot_results(args.env, all_rewards)
+plt.pause(0)

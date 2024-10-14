@@ -1,5 +1,5 @@
 import numpy as np
-import numpy as np
+
 def initialize_q_values(strategy, state_space, action_space):
         if strategy == 'zeros':
             return np.zeros((state_space, action_space))
@@ -18,8 +18,8 @@ class Agent(object):
         self.state_space = state_space
         self.action_space = action_space
         self.init_strategy = init_strategy
-        self.eps = 0.05
-        self.alpha = 0.5
+        self.eps = 0.01
+        self.alpha = 0.2
         self.gamma = 0.95
         self.prev_state = None
         self.prev_action = None
@@ -72,7 +72,7 @@ class Agent(object):
             self.prev_action = np.random.randint(self.action_space)
         else:
             if self.agent_type == 'Q':
-                max_action = np.where(self.Q[state] == np.max(self.Q[state]))[0][0]
+                max_action = np.random.choice(np.where(self.Q[state] == np.max(self.Q[state]))[0])
             elif self.agent_type == 'SARSA':
                 if self.prev_state is not None and self.prev_action is not None:
                     max_action = self.prev_action
@@ -89,8 +89,7 @@ class Agent(object):
         if self.agent_type == 'Q':
             max_next_action = np.argmax(self.Q[next_state])
             td_target = reward + self.gamma * self.Q[next_state][max_next_action]
-            td_error = td_target - self.Q[state][action]
-            self.Q[state][action] += self.alpha * td_error
+            self.Q[state][action] = (1-self.alpha) * self.Q[state][action] + self.alpha * td_target
             
         elif self.agent_type == 'SARSA':
             next_action = self.epsilon_greedy_action(next_state)
